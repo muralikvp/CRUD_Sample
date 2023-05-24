@@ -11,6 +11,5 @@
 
         public int Role { get; set; }
 
-
     }
 }

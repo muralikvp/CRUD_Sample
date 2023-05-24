@@ -1,3 +1,4 @@
+using Crud_Sample.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
@@ -66,7 +67,7 @@ namespace WebApp1.Controllers
 
             //select username from users
 
-            var user = (from u in users                      
+            var user = (from u in users
                         select u.Username);
 
             //select top 1 from users where id=12
@@ -123,14 +124,14 @@ namespace WebApp1.Controllers
             //}
             //else
             //{
-               
+
             //}
         }
 
         [HttpDelete]
         [Route("DeleteUser")]
         public ActionResult<User> deleteUser(int id)
-        { 
+        {
             var _user = _context.user.Find(id);
             if (_user == null)
             {
@@ -144,5 +145,64 @@ namespace WebApp1.Controllers
             }
         }
 
+        [HttpGet]
+        [Route("InnerJoinEx")]
+        public IEnumerable<UserRoleView> InnerJoinEx()
+        {
+            // select * from[dbo].[User] u inner join[dbo].[UserRoles] ur on(u.Role = ur.Id)
+            IEnumerable<UserRoleView> rolesView = (from t1 in _context.user
+                      join t2 in _context.userRoles on t1.Role equals t2.Id
+                      select new UserRoleView {Name = t1.Name, RoleName = t2.Name }).ToList();
+
+            return rolesView;
+
+        }
+
+
+
+
+        [HttpGet]
+        [Route("LeftJoinEx")]
+        public IEnumerable<UserRoleView> LeftJoinEx()
+        {
+            // select * from[dbo].[User] u left join[dbo].[UserRoles] ur on(u.Role = ur.Id)
+            IEnumerable<UserRoleView> rolesView = (from t1 in _context.user
+                                                   join t2 in _context.userRoles on t1.Role equals t2.Id into ps
+                                                   from t2 in ps.DefaultIfEmpty()
+                                                   select new UserRoleView { Name = t1.Name, RoleName = t2.Name }).ToList();
+
+            return rolesView;
+
+        }
+
+
+        [HttpGet]
+        [Route("OrderByEx")]
+        public IEnumerable<User> OrderByEx()
+        {
+            // select Name,UserName,Role from [dbo].[User] u order by Username,Password desc
+
+            IEnumerable<User> rolesView = (from t1 in _context.user
+                                                   orderby t1.Username descending 
+                                           select new User { Name = t1.Name, Username = t1.Username, Role= t1.Role }).ToList();
+
+            return rolesView;
+
+        }
+
+        [HttpGet]
+        [Route("TakeEx")]
+        public IEnumerable<User> TakeEx()
+        {
+
+            // select top 2 Name,Username,Role from [dbo].[User] u order by Username,Password desc
+
+            IEnumerable<User> rolesView = (from t1 in _context.user
+                                           orderby t1.Username descending
+                                           select new User { Name = t1.Name, Username = t1.Username, Role = t1.Role }).Take(2);
+
+            return rolesView;
+
+        }
     }
-    }
+}

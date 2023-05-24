@@ -8,5 +8,7 @@ namespace WebApp1.Models
         {
         }
         public DbSet<User> user { get; set; } = default!;
+
+        public DbSet<UserRoles> userRoles { get; set; } = default!;
     }
 }

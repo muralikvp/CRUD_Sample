@@ -51,10 +51,39 @@ namespace WebApp1.Controllers
         }
 
         [HttpGet]
+        [Route("GetLinqUser")]
+        public IEnumerable<string> getLinqUser(int id)
+        {
+
+            //select * from user 
+            List<User> users = _context.user.ToList();
+
+            //select top 1 from users where id=12
+
+            User user1 = (from u in users
+                          where u.Id == id
+                          select u).First();
+
+            //select username from users
+
+            var user = (from u in users                      
+                        select u.Username);
+
+            //select top 1 from users where id=12
+
+            User user2 = users.FirstOrDefault(p => p.Id == id);
+            //if (user2 == null)
+            //{
+            //    return NotFound();
+            //}
+
+            return user;
+        }
+
+        [HttpGet]
         [Route("GetUser")]
         public ActionResult<User> getUser(int id)
         {
-
             //select * from user where id = 12;
             var _user = _context.user.Find(id);
             if (_user == null)
@@ -62,6 +91,19 @@ namespace WebApp1.Controllers
                 return NotFound();
             }
             return _user;
+        }
+
+        [HttpGet]
+        [Route("testGroupBy")]
+        public dynamic testGroupBy()
+        {
+            var users = _context.user.ToList();
+            var orderGroups = from u in users
+                              group u by u.Role into g
+                              select (Role: g.Key, users: g);
+
+            return orderGroups;
+
         }
 
         [HttpPost]

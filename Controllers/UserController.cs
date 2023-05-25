@@ -178,18 +178,109 @@ namespace WebApp1.Controllers
 
         [HttpGet]
         [Route("OrderByEx")]
-        public IEnumerable<User> OrderByEx()
+        public IEnumerable<UserView> OrderByEx()
         {
             // select Name,UserName,Role from [dbo].[User] u order by Username,Password desc
 
-            IEnumerable<User> rolesView = (from t1 in _context.user
+            IEnumerable<UserView> rolesView = (from t1 in _context.user
                                                    orderby t1.Username descending 
-                                           select new User { Name = t1.Name, Username = t1.Username, Role= t1.Role }).ToList();
+                                           select new UserView { Name = t1.Name, Role = t1.Role }).ToList();
 
             return rolesView;
 
         }
 
+
+        [HttpGet]
+        [Route("CustomSelectEx")]
+        public dynamic CustomSelectEx()
+        {
+            // select Name as'ExtenName',Role as 'ExtenRole',Password from [dbo].[User] u order by Username desc
+
+            var rolesView = (from t1 in _context.user
+                                               orderby t1.Username descending
+                                               select new 
+                                               { 
+                                                   ExtenName = t1.Name.ToUpper(), 
+                                                   ExtenRole = t1.Role,
+                                                   ExPassword = t1.Password.ToLower(),
+                                                   Ex= "Hope Tutors" 
+                                               }
+                                               ).ToList();
+
+            return rolesView;
+
+        }
+
+        [HttpGet]
+        [Route("WhereEx")]
+        public dynamic WhereEx()
+        {
+            // select Name as'ExtenName',Role as 'ExtenRole',Password from [dbo].[User] u where Username = "Murali" 
+
+            var rolesView = (from t1 in _context.user
+                             where t1.Username == "Akil1" && t1.Name == "Akil"
+                             select new
+                             {
+                                 ExtenName = t1.Name.ToUpper(),
+                                 ExtenRole = t1.Role,
+                                 ExPassword = t1.Password.ToLower(),
+                                 Ex = "Hope Tutors"
+                             }
+                                               ).ToList();
+
+            return rolesView;
+
+        }
+
+
+        [HttpGet]
+        [Route("DistinctEx")]
+        public dynamic DistinctEx()
+        {
+            // select Name as'ExtenName',Role as 'ExtenRole',Password from [dbo].[User] u where Username = "Murali" 
+
+            var rolesView = (from t1 in _context.user
+                             select new
+                             {
+                                 t1.Name,
+                             }).Distinct();
+
+            return rolesView;
+
+        }
+
+        [HttpGet]
+        [Route("UnionEx")]
+        public dynamic UnionEx()
+        {
+
+            var Normalusers = (from t1 in _context.user
+                             where t1.Role == 1
+                             select new
+                             {
+                                 ExtenName = t1.Name.ToUpper(),
+                                 ExtenRole = t1.Role,
+                                 ExPassword = t1.Password.ToLower(),
+                                 Ex = "Hope Tutors"
+                             }).ToList();
+
+            var adminUsers = (from t1 in _context.user
+                               where t1.Role == 2
+                               select new
+                               {
+                                   ExtenName = t1.Name.ToUpper(),
+                                   ExtenRole = t1.Role,
+                                   ExPassword = t1.Password.ToLower(),
+                                   Ex = "Mango Groove"
+                               }).ToList();
+
+            var combinedUsers = Normalusers.Union(adminUsers);
+
+
+            return combinedUsers;
+
+        }
         [HttpGet]
         [Route("TakeEx")]
         public IEnumerable<User> TakeEx()
@@ -203,6 +294,99 @@ namespace WebApp1.Controllers
 
             return rolesView;
 
+        }
+
+        [HttpGet]
+        [Route("DeferredExecution")]
+        public int DeferredExecution()
+        {
+            #region deferred-execution
+            // Sequence operators form first-class queries that
+            // are not executed until you enumerate over them.
+
+            int[] numbers = { 5, 4, 1, 3, 9, 8, 6, 7, 2, 0 };
+
+            int i = 0;
+            var q = from n in numbers
+                    select ++i;
+
+
+
+            //  var result = CustomerList; // logic 
+            //   CustomerList.where;
+            //   CustomerList.join;
+
+            //toList();
+
+            // Note, the local variable 'i' is not incremented
+            // until each element is evaluated (as a side-effect):
+            foreach (var v in q)
+            {
+                Console.WriteLine($"v = {v}, i = {i}");
+            }
+            #endregion
+            return 0;
+        }
+
+        [HttpGet]
+        [Route("EagerExecution")]
+        public int EagerExecution()
+        {
+            #region eager-execution
+            // Methods like ToList() cause the query to be
+            // executed immediately, caching the results.
+
+            int[] numbers = { 5, 4, 1, 3, 9, 8, 6, 7, 2, 0 };
+
+            int i = 0;
+            var q = (from n in numbers
+                     select ++i)
+                     .ToList();
+
+            // The local variable i has already been fully
+            // incremented before we iterate the results:
+            foreach (var v in q)
+            {
+                Console.WriteLine($"v = {v}, i = {i}");
+            }
+            #endregion
+            return 0;
+        }
+
+        [HttpGet]
+        [Route("ReuseQueryDefinition")]
+        public int ReuseQueryDefinition()
+        {
+            #region reuse-query
+            // Deferred execution lets us define a query once
+            // and then reuse it later after data changes.
+
+            int[] numbers = { 5, 4, 1, 3, 9, 8, 6, 7, 2, 0 };
+            var lowNumbers = from n in numbers
+                             where n <= 3
+                             select n;
+
+            Console.WriteLine("First run numbers <= 3:");
+            foreach (int n in lowNumbers)
+            {
+                Console.WriteLine(n);
+            }
+
+            for (int i = 0; i < 10; i++)
+            {
+                numbers[i] = -numbers[i];
+            }
+
+            // During this second run, the same query object,
+            // lowNumbers, will be iterating over the new state
+            // of numbers[], producing different results:
+            Console.WriteLine("Second run numbers <= 3:");
+            foreach (int n in lowNumbers)
+            {
+                Console.WriteLine(n);
+            }
+            #endregion
+            return 0;
         }
     }
 }
